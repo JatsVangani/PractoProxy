@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+        <groupId>com.practo.commons</groupId>
+        <artifactId>practo-app-starter-parent</artifactId>
+        <version>3.0.0</version>
+        <relativePath></relativePath>
+    </parent>
+	<groupId>com.practo.proxy</groupId>
+	<artifactId>PractoProxy</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>PractoProxy</name>
+	<description>Practo Proxy Service</description>
+	<properties>
+		<!-- <java.version>11</java.version> -->
+		<maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <retrofit-version>2.9.0</retrofit-version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <commons-utils-version>3.0.0</commons-utils-version>
+        <commons-webutils-version>4.3.0</commons-webutils-version>
+        <lombok.version>1.18.30</lombok.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${lombok.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		 <dependency>
+            <groupId>com.practo.commons</groupId>
+            <artifactId>commons-webutils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.practo.commons</groupId>
+            <artifactId>commons-utils</artifactId>
+        </dependency>
+		 <dependency>
+            <groupId>com.practo.commons</groupId>
+            <artifactId>commons-security</artifactId>
+        </dependency>
+		<dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.14.9</version>
+        </dependency>
+		<dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>retrofit</artifactId>
+            <version>${retrofit-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>converter-jackson</artifactId>
+            <version>${retrofit-version}</version>
+        </dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
