@@ -8,14 +8,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.utility.HmacInterceptor;
 import com.practo.commons.security.config.SecureProperties;
 import com.practo.commons.security.config.SecureProperties.ServiceCredential;
 import com.practo.commons.webutils.enums.Subdomain;
 import com.practo.commons.webutils.generator.api.UrlGenerator;
 import com.practo.proxy.PractoProxy.client.InternalServiceHttpClient;
+import com.practo.proxy.PractoProxy.utility.HmacInterceptor;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -35,7 +34,6 @@ public class RetrofitConfiguration {
     @Bean
     public Map<String, InternalServiceHttpClient> serviceClients() {
         Map<String, InternalServiceHttpClient> clients = new HashMap<>();
-        
         // Titan Service
         ServiceCredential titanCredential = secureProperties.getServiceCredential("titan");
         String titanBaseUrl = urlGenerator.getUrl(Subdomain.titan);
