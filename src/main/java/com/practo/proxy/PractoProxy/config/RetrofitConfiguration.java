@@ -21,6 +21,9 @@ import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Configuration
 @RequiredArgsConstructor
 public class RetrofitConfiguration {
@@ -31,24 +34,32 @@ public class RetrofitConfiguration {
     private final SecureProperties secureProperties;
     private final UrlGenerator urlGenerator;
 
+    private static final Logger logger = LoggerFactory.getLogger(RetrofitConfiguration.class);
+
     @Bean
     public Map<String, InternalServiceHttpClient> serviceClients() {
         Map<String, InternalServiceHttpClient> clients = new HashMap<>();
         // Titan Service
         ServiceCredential titanCredential = secureProperties.getServiceCredential("titan");
+        logger.info("Titan credentials: {}", titanCredential);
         String titanBaseUrl = urlGenerator.getUrl(Subdomain.titan);
-        clients.put("titan", getHmacRetrofitBuild(titanCredential, titanBaseUrl, TIMEOUT_IN_SECONDS)
-                .create(InternalServiceHttpClient.class));
+        logger.info("Generated Titan base URL: {}", titanBaseUrl);
+        InternalServiceHttpClient titanClient = getHmacRetrofitBuild(titanCredential, titanBaseUrl, TIMEOUT_IN_SECONDS)
+                .create(InternalServiceHttpClient.class);
+        logger.info("Created Titan client with base URL: {}", titanBaseUrl);
+        clients.put("titan", titanClient);
 
         // Fabric Service
         ServiceCredential fabricCredential = secureProperties.getServiceCredential("fabric");
         String fabricBaseUrl = urlGenerator.getUrl(Subdomain.fabric);
+        logger.info("Generated Fabric base URL: {}", fabricBaseUrl);
         clients.put("fabric", getHmacRetrofitBuild(fabricCredential, fabricBaseUrl, TIMEOUT_IN_SECONDS)
                 .create(InternalServiceHttpClient.class));
 
         // Consult Service
         ServiceCredential consultCredential = secureProperties.getServiceCredential("consult");
         String consultBaseUrl = urlGenerator.getUrl(Subdomain.consult);
+        logger.info("Generated Consult base URL: {}", consultBaseUrl);
         clients.put("consult", getHmacRetrofitBuild(consultCredential, consultBaseUrl, TIMEOUT_IN_SECONDS)
                 .create(InternalServiceHttpClient.class));
 

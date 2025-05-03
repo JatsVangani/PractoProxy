@@ -7,13 +7,22 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
-@RequestMapping("/proxy")
+// @RequestMapping("")
 @RequiredArgsConstructor
 public class ProxyController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProxyController.class);
     private final Map<String, InternalServiceHttpClient> serviceClients;
+
+
+    @GetMapping("/enter")
+    public String helloWorld() {
+        return "Hello World";
+    }
 
     @GetMapping("/{service}/**")
     public ResponseEntity<Object> proxyGet(
@@ -21,15 +30,19 @@ public class ProxyController {
             @RequestParam(required = false) Map<String, String> queryParams,
             @RequestHeader Map<String, String> headers,
             HttpServletRequest request) {
+        logger.info("Received GET request for service: {}, path: {}", service, request.getRequestURI());
         InternalServiceHttpClient client = serviceClients.get(service);
         if (client == null) {
+            logger.warn("No client found for service: {}", service);
             return ResponseEntity.notFound().build();
         }
 
         String path = getPath(service, request);
+        logger.info("Forwarding request to path: {}", path);
         try {
-            return ResponseEntity.ok(client.get(path, queryParams).execute().body());
+            return ResponseEntity.ok(client.get(path, headers, queryParams).execute().body());
         } catch (Exception e) {
+            logger.error("Error processing request", e);
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
@@ -47,7 +60,7 @@ public class ProxyController {
 
         String path = getPath(service, request);
         try {
-            return ResponseEntity.ok(client.post(path, body).execute().body());
+            return ResponseEntity.ok(client.post(path, headers, body).execute().body());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
@@ -66,7 +79,7 @@ public class ProxyController {
 
         String path = getPath(service, request);
         try {
-            return ResponseEntity.ok(client.put(path, body).execute().body());
+            return ResponseEntity.ok(client.put(path, headers, body).execute().body());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
@@ -85,7 +98,7 @@ public class ProxyController {
 
         String path = getPath(service, request);
         try {
-            return ResponseEntity.ok(client.patch(path, body).execute().body());
+            return ResponseEntity.ok(client.patch(path, headers, body).execute().body());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
@@ -103,15 +116,16 @@ public class ProxyController {
 
         String path = getPath(service, request);
         try {
-            return ResponseEntity.ok(client.delete(path).execute().body());
+            return ResponseEntity.ok(client.delete(path, headers).execute().body());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
 
     private String getPath(String service, HttpServletRequest request) {
-        String fullPath = request.getRequestURI(); // e.g., /proxy/titan/v1/user
-        String prefix = "/proxy/" + service;
-        return fullPath.substring(prefix.length()); // returns /v1/user
+        String fullPath = request.getRequestURI(); // e.g., /titan/v1/user
+        String prefix = "/" + service;
+        // return fullPath.substring(prefix.length()); // returns /v1/user
+        return "https://titan.practo.com/content/v1/providers/501889a4-9690-4868-bcfe-3a75e4c99482/establishments";
     }
 } 
