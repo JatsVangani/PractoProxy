@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import retrofit2.Response;
+
 
 @RestController
 // @RequestMapping("")
@@ -17,6 +19,7 @@ public class ProxyController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyController.class);
     private final Map<String, InternalServiceHttpClient> serviceClients;
+    private final InternalServiceHttpClient titanHttpClient;
 
 
     @GetMapping("/enter")
@@ -31,21 +34,53 @@ public class ProxyController {
             @RequestHeader Map<String, String> headers,
             HttpServletRequest request) {
         logger.info("Received GET request for service: {}, path: {}", service, request.getRequestURI());
-        InternalServiceHttpClient client = serviceClients.get(service);
-        if (client == null) {
-            logger.warn("No client found for service: {}", service);
-            return ResponseEntity.notFound().build();
-        }
 
+        // You might not need the service logic anymore since we're directly using titanHttpClient
         String path = getPath(service, request);
         logger.info("Forwarding request to path: {}", path);
+        
         try {
-            return ResponseEntity.ok(client.get(path, headers, queryParams).execute().body());
+            Response<Object> response = titanHttpClient.get(path, headers, queryParams).execute();
+
+            // Log the response status and body (if successful)
+            if (response.isSuccessful()) {
+                logger.info("Received successful response from external service: Status = {}, Body = {}", 
+                        response.code(), response.body());
+            } else {
+                logger.warn("Received unsuccessful response: Status = {}, Error Message={}", 
+                        response.code(), response.message());
+                        System.out.println("JJK error message: " + response.message());
+            }
+    
+            return ResponseEntity.ok(response.body());
         } catch (Exception e) {
             logger.error("Error processing request", e);
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
+
+    // @GetMapping("/{service}/**")
+    // public ResponseEntity<Object> proxyGet(
+    //         @PathVariable String service,
+    //         @RequestParam(required = false) Map<String, String> queryParams,
+    //         @RequestHeader Map<String, String> headers,
+    //         HttpServletRequest request) {
+    //     logger.info("Received GET request for service: {}, path: {}", service, request.getRequestURI());
+    //     InternalServiceHttpClient client = serviceClients.get(service);
+    //     if (client == null) {
+    //         logger.warn("No client found for service: {}", service);
+    //         return ResponseEntity.notFound().build();
+    //     }
+
+    //     String path = getPath(service, request);
+    //     logger.info("Forwarding request to path: {}", path);
+    //     try {
+    //         return ResponseEntity.ok(client.get(path, headers, queryParams).execute().body());
+    //     } catch (Exception e) {
+    //         logger.error("Error processing request", e);
+    //         return ResponseEntity.internalServerError().body(e.getMessage());
+    //     }
+    // }
 
     @PostMapping("/{service}/**")
     public ResponseEntity<Object> proxyPost(
@@ -125,7 +160,7 @@ public class ProxyController {
     private String getPath(String service, HttpServletRequest request) {
         String fullPath = request.getRequestURI(); // e.g., /titan/v1/user
         String prefix = "/" + service;
-        // return fullPath.substring(prefix.length()); // returns /v1/user
-        return "https://titan.practo.com/content/v1/providers/501889a4-9690-4868-bcfe-3a75e4c99482/establishments";
+        return fullPath.substring(prefix.length()); // returns /v1/user
+        // return "https://latest-titan.practo.com/content/v1/providers/501889a4-9690-4868-bcfe-3a75e4c99482/establishments";
     }
 } 

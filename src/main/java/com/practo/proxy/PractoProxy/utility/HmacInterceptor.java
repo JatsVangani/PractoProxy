@@ -17,7 +17,7 @@ import org.springframework.http.HttpMethod;
 
 public class HmacInterceptor implements Interceptor {
 
-    private static final String SELF = "proxy";
+    private static final String SELF = "reach";
 
     private final ServiceCredential credential;
 
@@ -27,19 +27,20 @@ public class HmacInterceptor implements Interceptor {
 
     @Override
     public Response intercept(Chain chain) throws IOException {
-        Request originalRequest = chain.request();
+        Request request = chain.request();
         
-        SignatureGenerator signatureGenerator = SignatureGenerator.builder()
-            .method(HttpMethod.valueOf(originalRequest.method()))
-            .urlPath(originalRequest.url().encodedPath())
+        SignatureGenerator generator = SignatureGenerator.builder()
+            .method(HttpMethod.valueOf(request.method()))
             .nonce(Nonce.create().toString())
+            .urlPath(request.url().encodedPath())
             .secret(credential.getSecret())
             .build();
 
-        return chain.proceed(chain.request().newBuilder()
-            .header(SecurityConstants.AuthHeader.NONCE, signatureGenerator.getNonce())
+        return chain.proceed(chain.request()
+            .newBuilder()
+            .header(SecurityConstants.AuthHeader.NONCE, generator.getNonce())
             .header(SecurityConstants.AuthHeader.SERVICE, SELF)
-            .header(SecurityConstants.AuthHeader.SIGNATURE, signatureGenerator.generate())
+            .header(SecurityConstants.AuthHeader.SIGNATURE, generator.generate())
             .header(SecurityConstants.AuthHeader.VERSION, "V4")
             .build());
     }
