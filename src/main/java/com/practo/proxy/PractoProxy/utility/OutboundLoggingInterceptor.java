@@ -3,8 +3,6 @@ package com.practo.proxy.PractoProxy.utility;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
-import okhttp3.MediaType;
 
 import java.io.IOException;
 import org.slf4j.Logger;

@@ -15,8 +15,6 @@ import com.practo.commons.webutils.generator.api.UrlGenerator;
 import com.practo.proxy.PractoProxy.client.InternalServiceHttpClient;
 import com.practo.proxy.PractoProxy.utility.HmacInterceptor;
 
-import com.practo.proxy.PractoProxy.utility.OutboundLoggingInterceptor;
-
 import lombok.RequiredArgsConstructor;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -68,26 +66,11 @@ public class RetrofitConfiguration {
         return clients;
     }
 
-    @Bean
-    InternalServiceHttpClient titanHttpClient() {
-        ServiceCredential serviceCredential = secureProperties.getServiceCredential("titan");
-        String baseUrl = urlGenerator.getUrl(Subdomain.titan);
-
-        System.out.println("Titan base URL: JJJ " + baseUrl);
-        System.out.println("Titan service credential: JJJ" + serviceCredential);
-
-        return getHmacRetrofitBuild(serviceCredential, baseUrl, TIMEOUT_IN_SECONDS)
-            .create(InternalServiceHttpClient.class);
-    }
-
     private Retrofit getHmacRetrofitBuild(ServiceCredential serviceCredential, String baseUrl, int readTimeoutInSeconds) {
         Interceptor interceptor = new HmacInterceptor(serviceCredential);
 
-        Interceptor outboundLoggingInterceptor = new OutboundLoggingInterceptor();
-
         OkHttpClient httpClient = new OkHttpClient.Builder()
             .addInterceptor(interceptor)
-            .addInterceptor(outboundLoggingInterceptor)
             .readTimeout(Duration.ofSeconds(readTimeoutInSeconds))
             .build();
         
