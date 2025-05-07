@@ -1,7 +1,6 @@
 package com.practo.proxy.PractoProxy.controller;
 
 import com.practo.proxy.PractoProxy.client.InternalServiceHttpClient;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
@@ -10,12 +9,14 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Response;
+import okhttp3.ResponseBody;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-
 @RestController
-// @RequiredArgsConstructor
 public class ProxyController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyController.class);
@@ -32,9 +33,6 @@ public class ProxyController {
             @RequestParam(required = false) Map<String, String> queryParams,
             @RequestHeader Map<String, String> headers,
             HttpServletRequest request) {
-                for (Map.Entry<String, InternalServiceHttpClient> entry : serviceClients.entrySet()) {
-                    logger.info("Service name: {}, Client: {}", entry.getKey(), entry.getValue());
-                }
         logger.info("Received GET request for service: {}, path: {}", service, request.getRequestURI());
         InternalServiceHttpClient client = serviceClients.get(service);
         if (client == null) {
@@ -45,10 +43,18 @@ public class ProxyController {
         String path = getPath(service, request);
         logger.info("Forwarding request to path: {}", path);
         try {
-            return ResponseEntity.ok(client.get(path, queryParams).execute().body());
+            Response<ResponseBody> response = client.get(path, queryParams).execute();
+            String responseBody = response.body() != null
+                                   ? response.body().string()
+                                   : response.errorBody() != null ? response.errorBody().string() : "";
+            
+            HttpStatus status = HttpStatus.resolve(response.code());
+            if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+            return ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(responseBody);
         } catch (Exception e) {
             logger.error("Error processing request", e);
-            return ResponseEntity.internalServerError().body(e.getMessage());
+            return ResponseEntity.internalServerError().body("IO Error: " + e.getMessage());
         }
     }
 
